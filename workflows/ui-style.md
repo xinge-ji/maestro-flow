@@ -96,7 +96,7 @@ User selects: [1-N | "redo" | "all"]. Auto mode selects variant 1.
 
 #### 3d. Lock the selected direction
 
-Before solidification, ask the user to explicitly lock the chosen direction:
+Before solidification, ask the user to explicitly lock the chosen direction. Do not proceed to Step 4 until the user confirms:
 
 - **Confirm** → proceed to Step 4
 - **Compare again** → return to Step 3c

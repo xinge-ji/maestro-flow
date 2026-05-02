@@ -12,7 +12,9 @@ Extract from `$ARGUMENTS`:
 - Flags: `-y`/`--yes` (AUTO_YES), `-c`/`--continue` (RESUME), `--dry-run`, `--chain <name>`
 - `intent` = remaining text after flag removal
 
-**Resume mode**: If RESUME, load latest `.workflow/.maestro/maestro-*/status.json`, set `current_step` to first pending step, jump to **Step 6**.
+**Resume mode**: If RESUME, load latest `.workflow/.maestro/maestro-*/status.json`, set `current_step` to first pending step, and jump to the next logical wave.
+
+**State-based continuation**: For `continue` / `next` / `go`, read `.workflow/state.json` and route by current project state instead of intent text alone.
 
 ---
 
@@ -70,6 +72,7 @@ Route via `action × object` matrix. If `issue_id` present → issue pipeline di
 
 **Clarity scoring**: 3 = action+object+scope, 2 = action+object, 1 = action only, 0 = empty.
 If `clarity < 2` and not `AUTO_YES`: route to `maestro-discuss` for the bounded clarification loop.
+If `AUTO_YES` is set: skip the discuss gate and route directly using the best available heuristic.
 
 ### 3b: State-based routing (when `taskType === 'state_continue'`)
 
@@ -302,6 +305,8 @@ MAESTRO-COORDINATE: {chain_name}  (dry run)
 - Execute from step N
 - Cancel
 
+**If `AUTO_YES`**: Skip chain confirmation and continue with the selected chain immediately.
+
 ---
 
 ## Step 5: Setup Session
@@ -339,7 +344,9 @@ While pending steps remain:
 4. Read results CSV, update each step's status/findings/artifacts
 5. If barrier wave → run `analyzeBarrierArtifacts` to update context
 6. Record wave in state, persist `state.json`
-7. On any failure → abort (mark remaining steps skipped, break)
+7. On any failure:
+   - If `AUTO_YES` is false: abort immediately, mark remaining steps skipped, break
+   - If `AUTO_YES` is true: retry once; if it still fails, mark the current step skipped and continue with remaining runnable steps
 
 ---
 
@@ -384,4 +391,4 @@ Display completion banner: session, chain, wave results (per-step status + summa
 8. **report_agent_job_result**: Every agent MUST call this with the output schema
 9. **State.json tracks waves**: Each wave recorded with step IDs and results; `--continue` resumes from next pending
 10. **Dry-run is read-only**: Display chain with [BARRIER] markers, no execution
-11. **Abort on failure**: Failed step → skip remaining → report
+11. **Abort on failure**: Manual mode aborts on failure; auto mode retries once, then skips the failed step and continues

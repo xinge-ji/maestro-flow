@@ -12,6 +12,9 @@ via `spawn_agents_on_csv` — the coordinator never executes skills directly.
 Coordinator loop: classify intent → resolve chain → build wave CSV → spawn → read results →
 (barrier: read artifacts, update context, assemble next skill_call args) → next wave → report.
 
+State-based routing reads `.workflow/state.json` to determine the next logical step when the user
+asks to continue or advance. Fuzzy intent is routed through `maestro-discuss` before final routing.
+
 Each wave = 1 barrier task (solo) or N parallel non-barrier tasks.
 </purpose>
 
@@ -27,7 +30,7 @@ Each wave = 1 barrier task (solo) or N parallel non-barrier tasks.
 $ARGUMENTS — user intent text, or special flags.
 
 **Flags:**
-- `-y, --yes` — Auto mode: skip all prompts; propagate `-y` to each skill
+- `-y, --yes` — Auto mode: skip all prompts, skip `maestro-discuss`, skip chain confirmation, propagate `-y` to each skill
 - `--continue` — Resume latest paused session from last incomplete wave
 - `--dry-run` — Display planned chain without executing
 - `--super` — Super mode: deliver production-ready complete software system. Read `maestro-super.md` from deferred_reading, then follow it completely.
@@ -47,6 +50,7 @@ $ARGUMENTS — user intent text, or special flags.
 8. **Simple instruction**: Sub-agent instruction is minimal — just "execute {skill_call}, report result".
 9. **Abort on failure**: Failed step → mark remaining as skipped → report.
 10. **Resume from wave**: `--continue` finds last completed wave, resumes from next pending step.
+11. **Auto mode**: `-y` bypasses the discuss gate and confirmation prompts, then retries a failed step once before skipping it and continuing.
 </invariants>
 
 <chain_map>

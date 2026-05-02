@@ -207,7 +207,7 @@ Each wave generates `wave-{N}.csv` with extra `prev_context` column.
 
 **Wave computation**: Simple 2-wave -- all exploration tasks = wave 1, planning task = wave 2.
 
-**User validation**: Display exploration breakdown (skip if AUTO_YES or `--auto`).
+**User validation**: Display exploration breakdown and require an explicit user approval before generating the planning wave (skip if AUTO_YES or `--auto`).
 
 ### Phase 2: Wave Execution Engine
 

@@ -149,7 +149,7 @@ Schema: { "mode": "explore|refine", "design_directions": [...], "attribute_space
 
 #### 3c. Interactive style selection (skip if -y)
 
-Present directions with 6D visualization (colors, fonts, attribute scores, mood). Multi-select supported.
+Present directions with 6D visualization (colors, fonts, attribute scores, mood). Multi-select supported, but the selection is not final until the user explicitly confirms in Step 7c.
 Update `analysis-options.json` with `user_selection` field.
 
 #### 3d. Generate design-tokens.json for selected variant(s) (parallel)

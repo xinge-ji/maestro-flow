@@ -295,6 +295,8 @@ Bidirectional linking: update matching issues in `.workflow/issues/issues.jsonl`
    - Modify → open specific task for editing, return to P4
    - Just view → display full plan details, exit
 
+   This is a mandatory approval gate: do not hand off to /workflow:execute until the user explicitly chooses an approval option.
+
    The plan is not execution-ready until the user explicitly chooses an approval option.
 
 3. **executionContext handoff** (if "Execute now")

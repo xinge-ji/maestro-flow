@@ -34,11 +34,11 @@
     "dashboard/package.json"
   ],
   "scripts": {
-    "build": "cd dashboard && npx tsc -p tsconfig.node.json && cd .. && tsc",
-    "dev": "tsc --watch",
+    "build": "node ./node_modules/typescript/bin/tsc -p dashboard/tsconfig.node.json && node ./node_modules/typescript/bin/tsc",
+    "dev": "node ./node_modules/typescript/bin/tsc --watch",
     "start": "node bin/maestro.js",
     "mcp": "node bin/maestro-mcp.js",
-    "lint": "tsc --noEmit",
+    "lint": "node ./node_modules/typescript/bin/tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },

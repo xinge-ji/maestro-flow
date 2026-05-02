@@ -132,7 +132,7 @@ If any ARCHIVE_TARGETS exist in OUTPUT_DIR:
 
 Skip if `-c` (resuming) or `-y` (auto mode uses defaults).
 
-**Interactive scoping** via single AskUserQuestion (up to 3 questions):
+**Interactive scoping** via single AskUserQuestion (up to 3 questions). This is a human approval gate: do not write tasks.csv until the user has explicitly confirmed the selected directions and depth, unless `-y` is set:
 
 1. **Focus** (multiSelect, header: "分析方向"): Present 3-4 directions from Dimension-Direction Mapping:
 

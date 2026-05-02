@@ -236,7 +236,7 @@ Available exploration dimensions:
 
 **Wave computation**: 3-wave diamond -- explore = wave 1, score = wave 2, decide = wave 3. Quick mode: single wave.
 
-**User validation**: Display task breakdown (skip if AUTO_YES).
+**User validation**: Display task breakdown and require an explicit user confirmation before generating wave CSVs (skip if AUTO_YES).
 
 ### Phase 2: Wave Execution Engine
 

@@ -89,7 +89,7 @@ Spawn ui-design-agent to generate variants using 6D attribute space (mood, densi
 
 Present all variants with key attributes (colors, typography, effects).
 
-**Interactive** (default): user selects variant number, "redo", or "all"
+**Interactive** (default): user selects variant number, "redo", or "all"; the choice is not final until the user explicitly confirms the selected direction
 **Auto** (`-y`): select variant 1
 
 ### Step 6: Solidify Selected Design
