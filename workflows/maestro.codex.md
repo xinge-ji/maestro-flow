@@ -40,7 +40,7 @@ Instead of regex, extract a structured intent tuple using LLM semantic understan
 
 ```json
 {
-  "action":    "<create|fix|analyze|plan|execute|verify|review|test|debug|refactor|explore|manage|transition|continue|sync|learn|retrospect>",
+  "action":    "<create|fix|analyze|discuss|plan|execute|verify|review|test|debug|refactor|explore|manage|transition|continue|sync|learn|retrospect>",
   "object":    "<feature|bug|issue|code|test|spec|phase|milestone|doc|performance|security|ui|memory|codebase|config>",
   "scope":     "<module/file/area or null>",
   "issue_id":  "<ISS-XXXXXXXX-NNN if mentioned, else null>",
@@ -60,6 +60,7 @@ Route via `action × object` matrix. If `issue_id` present → issue pipeline di
 | fix | bug/code/perf/security→debug, issue→issue | debug |
 | create | feature→quick, issue→issue, test→test_gen, spec→spec_generate, ui→ui_design, config→init | quick |
 | analyze | bug/code→analyze, issue→issue_analyze, codebase→spec_map | analyze |
+| discuss | feature/ui/spec/code→discuss | discuss |
 | explore | issue→issue_discover, feature/ui→brainstorm/ui_design | brainstorm |
 | plan | issue→issue_plan, spec→spec_generate | plan |
 | execute | issue→issue_execute | execute |
@@ -68,7 +69,7 @@ Route via `action × object` matrix. If `issue_id` present → issue pipeline di
 | verify, review, test, debug, refactor, continue, sync, learn, retrospect, release, amend, compose | — | self-named |
 
 **Clarity scoring**: 3 = action+object+scope, 2 = action+object, 1 = action only, 0 = empty.
-If `clarity < 2` and not `AUTO_YES`: request user input (max 2 rounds).
+If `clarity < 2` and not `AUTO_YES`: route to `maestro-discuss` for the bounded clarification loop.
 
 ### 3b: State-based routing (when `taskType === 'state_continue'`)
 
@@ -105,6 +106,7 @@ const chainMap = {
   'status':             [{ cmd: 'manage-status' }],
   'init':               [{ cmd: 'maestro-init' }],
   'analyze':            [{ cmd: 'maestro-analyze',        args: '{phase}' }],
+  'discuss':            [{ cmd: 'maestro-discuss',        args: '"{description}"' }],
   'ui_design':          [{ cmd: 'maestro-ui-design',       args: '{phase}' }],
   'plan':               [{ cmd: 'maestro-plan',            args: '{phase}' }],
   'execute':            [{ cmd: 'maestro-execute',         args: '{phase}' }],
@@ -306,9 +308,9 @@ MAESTRO-COORDINATE: {chain_name}  (dry run)
 
 Create session directory `.workflow/.maestro/maestro-{timestamp}/`.
 
-**Barrier skills** (solo wave, coordinator analyzes artifacts after): `maestro-analyze`, `maestro-plan`, `maestro-brainstorm`, `maestro-roadmap`, `maestro-execute`.
+**Barrier skills** (solo wave, coordinator analyzes artifacts after): `maestro-analyze`, `maestro-plan`, `maestro-discuss`, `maestro-brainstorm`, `maestro-roadmap`, `maestro-execute`, `maestro-ui-design`.
 
-**Auto-flag injection** (when AUTO_YES): `maestro-analyze/-brainstorm/-roadmap/-ui-design` → `-y`, `maestro-plan` → `--auto`, `quality-test` → `--auto-fix`, `quality-retrospective` → `--auto-yes`.
+**Auto-flag injection** (when AUTO_YES): `maestro-analyze/-discuss/-brainstorm/-roadmap/-ui-design` → `-y`, `maestro-plan` → `--auto`, `quality-test` → `--auto-fix`, `quality-retrospective` → `--auto-yes`.
 
 Initialize `state.json` with: session_id, intent, chain_name, auto_yes, context (phase, dirs, issue_id, gaps), waves[], and steps[] (each with index, skill, args, status=pending).
 
@@ -354,6 +356,7 @@ Context updates per barrier skill:
 | `maestro-brainstorm` | `brainstorm_dir` |
 | `maestro-roadmap` | `spec_session_id` (SPEC-* pattern) |
 | `maestro-execute` | `exec_completed`/`exec_failed` counts (from results.csv) |
+| `maestro-ui-design` | `design_ref_dir`, `selection.json`, `MASTER.md` state (from design-ref artifacts) |
 
 **Key principle**: The coordinator owns all context assembly. Sub-agents receive a fully-resolved `skill_call`.
 
@@ -373,7 +376,7 @@ Display completion banner: session, chain, wave results (per-step status + summa
 
 1. **Semantic routing**: LLM-native structured extraction (`action × object`) replaces regex; disambiguates "问题" by context
 2. **Wave-by-wave**: Never start wave N+1 before wave N results are read and barrier artifacts analyzed
-3. **Barrier = solo wave**: A barrier skill always executes alone; coordinator analyzes its artifacts before proceeding
+3. **Barrier = solo wave**: A barrier skill always executes alone; coordinator analyzes its artifacts before proceeding. `maestro-ui-design` is included because it requires human confirmation before canonical design files are written.
 4. **Non-barriers can parallel**: Consecutive non-barrier skills share a wave with `max_workers = N`
 5. **Coordinator owns context**: Sub-agents receive fully-resolved `skill_call` — no context discovery needed
 6. **Simple instruction**: Sub-agent instruction is minimal — "execute {skill_call}, report result"

@@ -1,0 +1,27 @@
+{
+  "$schema": "./chain-graph.schema.json",
+  "id": "discuss-driven",
+  "name": "Discuss-Driven",
+  "description": "Bounded discussion gate before routing to a downstream command",
+  "version": "1.0.0",
+  "tags": ["lifecycle", "discussion"],
+  "entry": "discuss",
+  "inputs": {
+    "description": { "type": "string", "required": true }
+  },
+  "nodes": {
+    "discuss": {
+      "type": "command",
+      "cmd": "maestro-discuss",
+      "description": "Bounded discussion gate with short clarification loop",
+      "args": "\"{description}\"",
+      "auto_flag": "-y",
+      "next": "done"
+    },
+    "done": {
+      "type": "terminal",
+      "status": "success",
+      "summary": "Discussion gate completed successfully"
+    }
+  }
+}

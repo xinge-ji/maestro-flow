@@ -2,7 +2,7 @@
   "$schema": "../chain-graph.schema.json",
   "id": "singles/plan",
   "name": "Plan",
-  "description": "Create execution plan for a phase with exploration and clarification",
+  "description": "Create execution plan for a phase with exploration, clarification, and explicit user approval before execution handoff",
   "version": "1.0.0",
   "tags": ["planning"],
   "entry": "plan",
@@ -14,7 +14,7 @@
       "type": "command",
       "cmd": "maestro-plan",
       "args": "{phase}",
-      "description": "Explore, clarify, plan, check, and confirm a phase execution plan",
+      "description": "Explore, clarify, plan, check, present the plan, and require explicit user approval before execution handoff",
       "auto_flag": "--auto",
       "next": "done",
       "analyze": false

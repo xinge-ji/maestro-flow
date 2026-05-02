@@ -1,7 +1,7 @@
 ---
 name: maestro-ralph-execute
 description: Single-step executor — find next pending command in ralph session, execute by type (decision/skill/cli), hand off to next iteration
-argument-hint: "[-y] [session-id]"
+argument-hint: "[session-id]"
 allowed-tools:
   - Read
   - Write
@@ -27,19 +27,11 @@ Mutual invocation with `/maestro-ralph` forms a persistent self-perpetuating wor
 </purpose>
 
 <context>
-$ARGUMENTS — optional `-y` flag + optional session ID. If session ID omitted, finds latest running ralph session.
-
-**Flag parsing:**
-```
-Parse $ARGUMENTS:
-  Contains "-y" or "--yes" → auto = true, remove flag from remaining args
-  Remaining → session_id (if matches ralph-* pattern)
-```
+$ARGUMENTS — optional session ID. If omitted, finds latest running ralph session.
 
 **Session discovery:**
 Scan `.workflow/.ralph/ralph-*/status.json` for `status == "running"`, sorted by `created_at` descending.
-If remaining args match a session ID pattern, use that specific session.
-Also read `session.auto` from status.json — if `true`, treat as `-y` even if flag not passed（ralph 已写入）。
+If $ARGUMENTS matches a session ID pattern, use that specific session.
 </context>
 
 <execution>
@@ -60,12 +52,12 @@ If no session found:
   End.
 ```
 
-Read status.json → extract: `id`, `steps[]`, `current_step`, `status`, `phase`.
+Read status.json → extract: `id`, `commands[]`, `current`, `status`, `phase`.
 
 ## Step 2: Find Next Pending Command
 
 ```
-next = steps.find(step => step.status == "pending")
+next = commands.find(cmd => cmd.status == "pending")
 
 If no pending command:
   → Step 5 (Complete)
@@ -131,7 +123,7 @@ Write status.json
 Display step banner:
 ```
 ------------------------------------------------------------
-  [{next.index}/{steps.length - 1}] {next.skill} [{next.type}]
+  [{next.index}/{commands.length - 1}] {next.skill} [{next.type}]
 ------------------------------------------------------------
   Args: {next.args}
   {next.type == "decision" ? "Retry: " + JSON.parse(next.args).retry_count + "/" + JSON.parse(next.args).max_retries : ""}
@@ -156,7 +148,7 @@ Skill({ skill: "maestro-ralph" })
 Ralph will:
 1. Detect the running decision node in status.json
 2. Evaluate execution results (verify gaps, test failures, etc.)
-3. Optionally expand steps[] with fix loops
+3. Optionally expand commands[] with fix loops
 4. Mark the decision node completed
 5. Call `Skill("maestro-ralph-execute")` to resume
 
@@ -166,25 +158,8 @@ Ralph will:
 
 Synchronous in-session execution.
 
-**`-y` auto flag 传播：** 当 `auto == true` 时，按传播表对目标 skill 附加 auto flag：
 ```
-auto_flag_map = {
-  "maestro-init": "-y",
-  "maestro-analyze": "-y",
-  "maestro-brainstorm": "-y",
-  "maestro-roadmap": "-y",
-  "maestro-plan": "-y",
-  "maestro-execute": "-y",
-  "quality-business-test": "-y",
-  "quality-test": "-y --auto-fix",
-  "maestro-milestone-complete": "-y"
-}
-flag = auto_flag_map[next.skill] || ""
-effective_args = flag ? `${next.args} ${flag}` : next.args
-```
-
-```
-Skill({ skill: next.skill, args: effective_args })
+Skill({ skill: next.skill, args: next.args })
 ```
 
 On success:
@@ -204,18 +179,10 @@ next.completed_at = new Date().toISOString()
 Write status.json
 
 Display: [N/total] ✗ {next.skill} failed: {error}
-
-If auto:
-  If not next.retried:
-    next.retried = true, next.status = "pending", next.error = null → retry once
-  Else:
-    next.status = "skipped" → continue (auto-skip)
-    Display: [N/total] ⏭ {next.skill} auto-skipped after retry
-Else:
-  AskUserQuestion: "retry / skip / abort"
-    retry → reset next.status = "pending", next.error = null → Skill("maestro-ralph-execute")
-    skip  → next.status = "skipped" → Skill("maestro-ralph-execute")
-    abort → status.status = "paused" → Write status.json → End.
+AskUserQuestion: "retry / skip / abort"
+  retry → reset next.status = "pending", next.error = null → Skill("maestro-ralph-execute")
+  skip  → next.status = "skipped" → Skill("maestro-ralph-execute")
+  abort → status.status = "paused" → Write status.json → End.
 ```
 
 Then hand off:
@@ -265,7 +232,8 @@ next.status = "failed"
 next.error = "{error details}"
 Write status.json
 
-(same as 4b failure handling: auto → retry once then skip; else → AskUserQuestion)
+AskUserQuestion: "retry / skip / abort"
+  (same as 4b failure handling)
 ```
 
 Then hand off:
@@ -275,7 +243,7 @@ Skill({ skill: "maestro-ralph-execute" })
 
 ## Step 5: Complete Session
 
-When no pending steps remain:
+When no pending commands remain:
 
 ```
 status.status = "completed"
@@ -292,7 +260,7 @@ Display completion report:
   Phase:    {phase}
   Steps:    {completed}/{total}
 
-  {steps.map(cmd => {
+  {commands.map(cmd => {
     icon = cmd.status == "completed" ? "✓" :
            cmd.status == "skipped"   ? "—" :
            cmd.status == "failed"    ? "✗" : " "
@@ -319,14 +287,12 @@ Display completion report:
 
 <success_criteria>
 - [ ] Session discovery finds latest running ralph session
-- [ ] `-y` flag parsed from args OR inherited from session.auto
-- [ ] Pending step correctly identified from steps[]
+- [ ] Pending command correctly identified from commands[]
 - [ ] decision nodes hand off to maestro-ralph via Skill()
 - [ ] skill nodes execute synchronously via Skill() and self-invoke next
-- [ ] `-y` auto flag 按传播表附加到目标 skill args
 - [ ] cli nodes use maestro delegate with run_in_background + stop pattern
 - [ ] status.json updated after every status change (resume-safe)
-- [ ] auto 模式：失败重试一次后 auto-skip；非 auto：AskUserQuestion retry/skip/abort
+- [ ] Failure handling offers retry/skip/abort
 - [ ] Completion report shows all steps with status icons
-- [ ] Self-invocation chain continues until all steps complete
+- [ ] Self-invocation chain continues until all commands complete
 </success_criteria>

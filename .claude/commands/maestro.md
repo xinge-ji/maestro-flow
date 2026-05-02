@@ -19,6 +19,8 @@ Two routing modes:
 1. **Intent-based**: User describes a goal → classify task type → select/compose command chain → confirm → execute
 2. **State-based**: Read .workflow/state.json → determine next logical step → suggest/execute (triggered by `continue`/`next`)
 
+For fuzzy intent, `maestro-discuss` acts as the bounded discussion gate before final routing.
+
 Per-step execution engine (default: auto):
 - **internal**: Execute via Skill() in current session — output visible in conversation, synchronous, user can intervene
 - **CLI delegate**: Heavy execution steps — context isolation, template-driven prompts, gemini quality analysis
@@ -41,7 +43,7 @@ $ARGUMENTS — user intent text, or special keywords.
 - `status` — Shortcut to Skill({ skill: "manage-status" })
 
 **Flags:**
-- `-y` / `--yes` — Auto mode: skip clarification, skip confirmation, auto-skip on errors. Propagates to downstream commands that support it.
+- `-y` / `--yes` — Auto mode: skip the discussion gate, skip confirmation, auto-skip on errors. Propagates to downstream commands that support it.
 - `-c` / `--continue` — Resume previous coordinator session from `.workflow/.maestro/*/status.json`
 - `--dry-run` — Show planned chain without executing
 - `--exec <mode>` — Execution engine: `auto` (default), `cli`, `internal`. `internal` = Skill() in current session; `cli` = delegate to external CLI. Auto selects per step based on command complexity.
@@ -65,28 +67,27 @@ When `-y` is active, maestro propagates auto flags to downstream commands. Only 
 
 | Command | Auto Flag | Effect |
 |---------|-----------|--------|
-| maestro-init | `-y` | Skip interactive questioning |
 | maestro-analyze | `-y` | Skip interactive scoping, auto-deepen |
+| maestro-discuss | `-y` | Skip interactive questions, use heuristics |
 | maestro-brainstorm | `-y` | Skip interactive questions, use defaults |
 | maestro-roadmap | `-y` | Skip interactive questions, use defaults (create/revise/review) |
 | maestro-ui-design | `-y` | Skip interactive selection, pick top variant |
-| maestro-plan | `-y` | Skip confirmations and clarification |
-| maestro-execute | `-y` | Skip confirmations, blocked auto-continue |
-| maestro-verify | *(none)* | No interactive prompts |
-| quality-business-test | `-y` | Skip plan confirmation |
-| quality-review | *(none)* | No interactive prompts, auto-detects level |
-| quality-test | `-y --auto-fix` | Auto-trigger gap-fix loop on failures |
-| quality-test-gen | *(none)* | No interactive prompts |
-| quality-debug | *(none)* | No interactive prompts |
-| quality-retrospective | `-y` | Accept all routing recommendations without prompting |
-| maestro-milestone-audit | *(none)* | No interactive prompts |
-| maestro-milestone-complete | `-y` | Skip knowledge promotion inquiry |
-| manage-learn | *(none)* | No interactive prompts |
+| maestro-plan | `--auto` | Skip interactive clarification |
+| maestro-roadmap --mode full | `-y` | Skip interactive questions, use defaults |
+| maestro-execute | *(none)* | No auto flag — executes all tasks normally |
+| maestro-verify | *(none)* | No auto flag — runs full verification |
+| quality-review | *(none)* | No auto flag — auto-detects level, runs fully |
+| quality-test | `--auto-fix` | Auto-trigger gap-fix loop on failures |
+| quality-test-gen | *(none)* | No auto flag — generates tests normally |
+| quality-debug | *(none)* | No auto flag — runs diagnosis normally |
+| quality-retrospective | `--auto-yes` | Accept all routing recommendations (spec/note/issue) without prompting |
+| maestro-milestone-audit | *(none)* | No auto flag — validates milestone readiness |
+| manage-learn | *(none)* | No auto flag — pure file operation, no prompts |
 
 Commands not listed (manage-*, spec-*, milestone-*) have no auto flags and execute as-is.
 
 In auto mode, maestro also:
-- Skips intent clarification (workflow Step 2d)
+- Skips the `maestro-discuss` gate (workflow Step 2d)
 - Skips chain confirmation (workflow Step 3d)
 - Auto-skips on step errors (retry once, then skip and continue)
 
@@ -97,7 +98,7 @@ In auto mode, maestro also:
 | Code | Severity | Description | Recovery |
 |------|----------|-------------|----------|
 | E001 | error | No intent and project not initialized | Prompt for intent or suggest maestro-init |
-| E002 | error | Clarity too low after 2 clarification rounds | Show parsed intent, ask user to rephrase |
+| E002 | error | Discussion gate could not resolve after 2 rounds | Show parsed intent, ask user to rephrase |
 | E003 | error | Chain step failed + user chose abort | Record partial progress, suggest resume with -c |
 | E004 | error | Resume session not found | Show available sessions |
 | W001 | warning | Intent ambiguous, multiple chains possible | Present options, let user choose |

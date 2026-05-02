@@ -63,7 +63,7 @@ Gather context from available sources:
 
 **2e. Infer targets** from phase goal / brainstorm / spec. Fallback: `["home"]`.
 
-**2f. Interactive brief review** (skip if -y): present brief, allow adjustments.
+**2f. Interactive brief review** (skip if -y): present brief, allow adjustments, and require an explicit user confirmation before generating variants.
 
 ---
 
@@ -93,6 +93,15 @@ Save variants to `${PHASE_DIR}/design-ref/prototypes/variant-{N}-system.md`.
 
 Display each variant summary (pattern, colors, typography, effects, anti-patterns).
 User selects: [1-N | "redo" | "all"]. Auto mode selects variant 1.
+
+#### 3d. Lock the selected direction
+
+Before solidification, ask the user to explicitly lock the chosen direction:
+
+- **Confirm** → proceed to Step 4
+- **Compare again** → return to Step 3c
+- **Redo** → regenerate variants from Step 3a
+- **Cancel** → save variants and exit without solidifying
 
 ---
 

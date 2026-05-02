@@ -282,17 +282,20 @@ Bidirectional linking: update matching issues in `.workflow/issues/issues.jsonl`
 
 ## P5: Confirmation
 
-**Purpose:** Present plan to user and determine next action.
+**Purpose:** Present plan to user, capture an explicit approval gate, and determine next action.
 
 ### Steps
 
 1. **Display plan summary** — summary, approach, task count, wave structure, complexity, key dependencies
 
 2. **Present options via AskUserQuestion** (skip if `config.gates.confirm_plan == false`, auto-proceed)
-   - Execute now → build executionContext, hand off to /workflow:execute
+   - Approve and execute → build executionContext, hand off to /workflow:execute
+   - Approve and keep draft → keep the plan as a reviewed artifact, stop before execution handoff
    - Verify plan quality → re-run P4 with stricter checks
-   - Just view → display full plan details, exit
    - Modify → open specific task for editing, return to P4
+   - Just view → display full plan details, exit
+
+   The plan is not execution-ready until the user explicitly chooses an approval option.
 
 3. **executionContext handoff** (if "Execute now")
    ```json

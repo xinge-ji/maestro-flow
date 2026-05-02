@@ -443,7 +443,29 @@ Implementer's choice. Research suggests: {relevant finding from researchContext}
 
 This makes research findings visible to the planner through context.md without imposing hard constraints.
 
-**8.5: Write context.md**
+**8.4.5: Human confirmation gate** (skip if `-y`)
+
+Before writing any decision context, ask the user to explicitly approve the current Locked/Free/Deferred split:
+
+```markdown
+AskUserQuestion({
+  question: "Confirm the decision context before writing context.md?",
+  options: [
+    { label: "Confirm", description: "Write the current Locked/Free/Deferred decisions as-is" },
+    { label: "Revise areas", description: "Return to the selected gray areas and adjust the decision set" },
+    { label: "Defer gray areas", description: "Move unresolved items to Deferred and keep the context minimal" },
+    { label: "Skip", description: "Write a minimal context.md without extra decisions" }
+  ]
+})
+```
+
+Handle selection:
+- **Confirm**: continue to Step 8.5 and write the full context.md
+- **Revise areas**: return to Step 8.3 for the chosen area(s), then re-classify
+- **Defer gray areas**: keep only clearly locked decisions and move the rest to Deferred
+- **Skip**: write a minimal context.md and proceed
+
+**8.5: Write context.md after confirmation**
 
 Write to `OUTPUT_DIR/context.md`:
 
@@ -675,6 +697,7 @@ Replaceable blocks (overwritten each round):
 - Code references included where relevant (file paths, line numbers)
 
 **Both modes (full + quick):**
+- User confirmation captured before writing context.md unless `-y` or Skip was selected
 - context.md written with all decisions classified as Locked/Free/Deferred
 - Gray areas identified through phase-specific analysis
 - Scope creep redirected to Deferred section

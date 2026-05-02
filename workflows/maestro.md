@@ -174,10 +174,11 @@ Route priority:
 
 Display intent analysis: action, object, scope, issue_id, phase_ref, task_type, clarity score.
 
-**Clarification** (skip if `autoYes` or clarity >= 2, max 2 rounds):
-- 0 → offer: "Start new project" / "Continue working" / "Quick task" / "Check status" / "Rephrase"
-- 1 → confirm inferred action with alternatives
-- Still unclear after 2 rounds → **Error E002**
+**Discussion gate**:
+- If `autoYes` is active, skip discussion and continue to Step 3.
+- If `clarity >= 2`, continue directly to Step 3.
+- If `clarity < 2`, hand off to `Skill({ skill: "maestro-discuss", args: "\"{description}\"" })` and let that workflow run the bounded clarification loop.
+- If the discussion gate still cannot resolve the route after 2 rounds, surface **Error E002**.
 
 ## Step 3: Select Chain & Prepare
 

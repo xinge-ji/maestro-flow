@@ -99,8 +99,13 @@ DESIGN_BRIEF = {
 **2f. Infer targets** (if not specified):
 Extract page names from phase goal / brainstorm / spec epics. Fallback: `["home"]`.
 
-**2g. Interactive refinement** (skip if -y):
-Present DESIGN_BRIEF summary, allow user adjustments before proceeding.
+**2g. Interactive brief confirmation** (skip if -y):
+Present DESIGN_BRIEF summary, allow user adjustments, then require explicit user approval before generating any variants.
+
+Confirmation options:
+- **Confirm** → proceed to Step 3
+- **Revise brief** → apply adjustments and re-run Step 2e / 2f synthesis
+- **Defer** → save the current brief snapshot and exit without generating variants
 
 ---
 
@@ -315,7 +320,16 @@ Selection options: `1-N` (select), `mix` (merge), `redo` (regenerate), `all` (ke
 
 Auto mode (-y): select variant 1. Otherwise: `redo` -> Step 3, `mix` -> merge tokens, `all` -> keep all, number -> select that variant.
 
-#### 7c. Solidify selected design
+#### 7c. Lock selected design (skip if -y)
+
+Before writing any canonical files, ask the user to explicitly lock the chosen direction:
+
+- **Confirm and solidify** → proceed to write MASTER.md and copy canonical files
+- **Compare again** → return to Step 7a
+- **Redo variants** → return to Step 3
+- **Cancel** → save variants and exit without writing MASTER.md
+
+#### 7d. Solidify selected design
 
 **Write MASTER.md:**
 Sections: Selected Style (6D attributes), Color Palette (token table), Typography (fonts/scale/combinations),
@@ -360,6 +374,16 @@ Spacing & Layout, Effects & Interactions, Component Styles, Animation System, An
 
 ---
 
+## Success Criteria
+
+- [ ] Design brief reviewed and explicitly confirmed before any variant generation, unless `-y` is set
+- [ ] Style, animation, layout, and assembly artifacts generated for the selected scope
+- [ ] User explicitly locked the selected direction before writing canonical files, unless `-y` is set
+- [ ] `MASTER.md`, `design-tokens.json`, `animation-tokens.json`, and `selection.json` written
+- [ ] `index.json` updated with `design_ref.status = "selected"`
+
+---
+
 ## Integration with maestro-plan
 
 `maestro-plan` P1 (Context Collection):
@@ -377,6 +401,7 @@ Spacing & Layout, Effects & Interactions, Component Styles, Animation System, An
 | Design system returns empty | Retry with broader keywords, then abort |
 | Prototype agent fails | Log error, continue with other variants |
 | User cancels selection | Save all variants as-is, exit without MASTER.md |
+| User cancels lock step | Save variants and selection metadata, exit without MASTER.md |
 | --refine without existing design-ref | Error E004 |
 
 ---
@@ -387,5 +412,5 @@ Spacing & Layout, Effects & Interactions, Component Styles, Animation System, An
 |------|-------|-------|
 | Step 1 start | index.json.status | "designing" |
 | Step 6 complete | index.json.design_ref.status | "variants_ready" |
-| Step 7 complete | index.json.design_ref.status | "selected" |
-| Step 7 complete | index.json.updated_at | Current timestamp |
+| Step 7c complete | index.json.design_ref.status | "selected" |
+| Step 7d complete | index.json.updated_at | Current timestamp |

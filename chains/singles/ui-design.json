@@ -2,7 +2,7 @@
   "$schema": "../chain-graph.schema.json",
   "id": "singles/ui-design",
   "name": "UI Design",
-  "description": "Generate UI design prototypes with multiple styles via ui-ux-pro-max",
+  "description": "Generate UI design prototypes with explicit user confirmation before solidifying design",
   "version": "1.0.0",
   "tags": [
     "maestro",
@@ -22,7 +22,7 @@
       "next": "done",
       "analyze": false,
       "args": "{phase}",
-      "description": "Generate UI design prototypes with multiple styles via ui-ux-pro-max"
+      "description": "Generate UI design prototypes, require user approval, then solidify selected design"
     },
     "done": {
       "type": "terminal",

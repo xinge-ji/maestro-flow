@@ -2,7 +2,7 @@
   "$schema": "./chain-graph.schema.json",
   "id": "ui-design-driven",
   "name": "UI Design-Driven",
-  "description": "UI Design -> Plan -> Execute -> Verify pipeline",
+  "description": "UI Design with user confirmation -> Plan -> Execute -> Verify pipeline",
   "version": "1.0.0",
   "tags": ["lifecycle", "ui-design"],
   "entry": "ui_design",
@@ -14,7 +14,7 @@
     "ui_design": {
       "type": "command",
       "cmd": "maestro-ui-design",
-      "description": "Generate UI design prototypes with multiple styles, user selects winner",
+      "description": "Generate UI design prototypes, let the user confirm the brief and lock the selected direction",
       "args": "{phase}",
       "auto_flag": "-y",
       "next": "plan"

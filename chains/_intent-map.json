@@ -27,8 +27,14 @@
       "route": { "graph": "brainstorm-driven" }
     },
     {
+      "type": "discuss",
+      "regex": "discuss|discussion|grill|聊聊|先问清楚|想清楚再说|讨论一下",
+      "flags": "i",
+      "route": { "graph": "discuss-driven" }
+    },
+    {
       "type": "analyze",
-      "regex": "analy[sz]e|feasib|evaluat|assess|discuss|分析|评估|讨论",
+      "regex": "analy[sz]e|feasib|evaluat|assess|分析|评估|讨论",
       "flags": "i",
       "route": { "graph": "singles/analyze" }
     },
