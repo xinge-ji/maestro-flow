@@ -70,7 +70,7 @@ default             → Create Mode: P1 → P2 → P3 → P4 → P4.5 → P5
    - Read `${CONTEXT_DIR}/context.md` if exists, else warn (no upstream analyze)
 
 2. **Load spec reference** (if `--spec` flag or index.json has spec_ref)
-   - Read from `.workflow/task-specs/${spec_ref}/`: spec-summary.md, requirements/_index.md, epics/_index.md
+   - Read from `.workflow/.spec/${spec_ref}/`: spec-summary.md, requirements/_index.md, epics/_index.md
 
 3. **Load project specs**
    ```
@@ -288,18 +288,16 @@ Bidirectional linking: update matching issues in `.workflow/issues/issues.jsonl`
 
 1. **Display plan summary** — summary, approach, task count, wave structure, complexity, key dependencies
 
-2. **Present options via AskUserQuestion** (skip if `config.gates.confirm_plan == false`, auto-proceed)
+2. **Present options via AskUserQuestion** (skip only in `AUTO_YES` mode; otherwise this is mandatory)
    - Approve and execute → build executionContext, hand off to /workflow:execute
-   - Approve and keep draft → keep the plan as a reviewed artifact, stop before execution handoff
+   - Approve and keep draft → keep the reviewed plan, stop before execution handoff
    - Verify plan quality → re-run P4 with stricter checks
-   - Modify → open specific task for editing, return to P4
    - Just view → display full plan details, exit
+   - Modify → open specific task for editing, return to P4
 
-   This is a mandatory approval gate: do not hand off to /workflow:execute until the user explicitly chooses an approval option.
+   Do not hand off to /workflow:execute until the user explicitly chooses an approval option.
 
-   The plan is not execution-ready until the user explicitly chooses an approval option.
-
-3. **executionContext handoff** (if "Execute now")
+3. **executionContext handoff** (if "Approve and execute")
    ```json
    {
      "planObject": { "plan": "plan.json contents", "tasks": { "TASK-001": "..." } },

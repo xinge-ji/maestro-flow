@@ -312,6 +312,11 @@ spawn_agents_on_csv({
 
 2. **Revision loop** (max 3 rounds): If critical issues found, regenerate affected tasks.
 
+2b. **Spec Enrichment**: Persist cross-task reusable design decisions:
+   - `maestro spec add coding|arch "<decision.title>" "<rationale>" --keywords ... --source plan:{sessionId}`
+   - Test strategy decisions → `maestro spec add test ...`
+   - Typical: 0-3 entries per plan session
+
 3. **Export results**:
    - Export `results.csv` from master `tasks.csv`
    - Generate `context.md`: summary (phase, task count, wave count, complexity, exploration count), exploration findings per angle, plan overview (approach, task IDs, waves), next steps
@@ -321,9 +326,12 @@ spawn_agents_on_csv({
 5. **Issue linking** (if --gaps):
    For each TASK with `issue_id`: update issue in `issues.jsonl` (`task_refs` += TASK-NNN, `task_plan_dir`, `status: "planned"`, `updated_at`) + append history entry. Ensures bidirectional issue-TASK traceability.
 
-6. **Display summary + options** (skip options if AUTO_YES):
+6. **Display summary + approval options** (skip options only if AUTO_YES):
    Show phase name, task/wave counts, checker status, output file paths.
-   Next steps: `maestro-execute "{phase}"` (execute) or `maestro-plan "{phase}"` (re-plan).
+   Require an explicit choice before execution handoff:
+   - Approve and execute: `maestro-execute "{phase}"`
+   - Approve and keep draft: stop after plan review
+   - Modify/re-plan: `maestro-plan "{phase}"`
 
 ### Shared Discovery Board Protocol
 
